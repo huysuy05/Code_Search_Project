@@ -10,23 +10,23 @@ parser = Parser(PY_LANGUAGE)
 def pythonToAST(code):
     """Returns a string JSON format of the tree by parsing the tree and getting the root node"""
     tree = parser.parse(bytes(code, encoding="utf-8"))
-    objAST = nodeToDict(tree.root_node)
+    objAST = tree.root_node
     assert tree.root_node.type == "module"  # Ensures that the root node of Python code is "module"
-    return json.dumps(objAST)
+    return objAST
 
 
-def nodeToDict(node):
-    """Returns a dictionary format of the AST"""
-    return {
-        "type": node.type,
-        "start_point": node.start_point,
-        "end_point": node.end_point,
-        "children": [nodeToDict(child) for child in node.children]
-    }
+# def nodeToDict(node):
+#     """Returns a dictionary format of the AST"""
+#     return {
+#         "type": node.type,
+#         "start_point": node.start_point,
+#         "end_point": node.end_point,
+#         "children": [nodeToDict(child) for child in node.children]
+#     }
 
 
 def ASTSummarization(objAST):  # ---> The AST of the code snippet in JSON format
-    tree = parser.parse(bytes(objAST, encoding="utf-8"))
+    # tree = parser.parse(bytes(objAST, encoding="utf-8"))
     """Perform a recursive function for an in-order traversal starting from the AST's root node"""
     def findBodyNode(node):
         if node.type == 'block':
@@ -38,7 +38,7 @@ def ASTSummarization(objAST):  # ---> The AST of the code snippet in JSON format
         return None
 
     try:
-        body_node = findBodyNode(tree.root_node)
+        body_node = findBodyNode(objAST)
         listSeqs = []
         for child in body_node.children:
             listSeqs.append(child.type)
