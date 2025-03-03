@@ -6,70 +6,58 @@ import json
 PY_LANGUAGE = Language(tspython.language())
 parser = Parser(PY_LANGUAGE)
 
-tree = parser.parse(bytes(
-    """
-    def printHello():
-        if bar:
-            baz()
-    """,
-    'utf8'
-))
 
-root_node = tree.root_node
-assert root_node.type == "module"   #Testing if the root node is called module
-assert root_node.start_point == (1, 4)  #Testing if the module begins at line 1
-assert root_node.end_point == (4, 4)    #Testing if the module ends at line 4
-print(f"Root node starting point: {root_node.start_point}")
-print(f"Root node end point: {root_node.end_point}")
-
-function_node = root_node.children[0]
-assert function_node.type == "function_definition"
-assert function_node.child_by_field_name("name").type == "identifier"
+def pythonToAST(code):
+    """Returns a string JSON format of the tree by parsing the tree and getting the root node"""
+    tree = parser.parse(bytes(code, encoding="utf-8"))
+    objAST = nodeToDict(tree.root_node)
+    assert tree.root_node.type == "module"  # Ensures that the root node of Python code is "module"
+    return json.dumps(objAST)
 
 
-function_name_node = function_node.children[1]
-assert function_name_node.type == "identifier"
-assert function_name_node.start_point == (1,8)
-assert function_name_node.end_point == (1,18)
-print(f"Function name node starting point: {function_name_node.start_point}")
-print(f"Function name node ending point: {function_name_node.end_point}")
-
-function_body_node = function_node.child_by_field_name("body")
-print(f"Function body node length: {len(function_body_node.children)}")
-
-if_statement_node = function_body_node.child(0)
-assert if_statement_node.type == "if_statement"
-
-function_call_node = if_statement_node.child_by_field_name("consequence").child(0).child(0) 
-assert function_call_node.type == "call"
-
-function_call_name_node = function_call_node.child_by_field_name("function")
-assert function_call_name_node.type == "identifier"
-
-function_call_args_node = function_call_node.child_by_field_name("arguments")
-assert function_call_args_node.type == "argument_list"
-
-assert str(root_node) == (
-    "(module "
-        "(function_definition "
-            "name: (identifier) "
-            "parameters: (parameters) "
-            "body: (block "
-                "(if_statement "
-                    "condition: (identifier) "
-                    "consequence: (block "
-                        "(expression_statement (call "
-                            "function: (identifier) "
-                            "arguments: (argument_list))))))))"
-)
+def nodeToDict(node):
+    """Returns a dictionary format of the AST"""
+    return {
+        "type": node.type,
+        "start_point": node.start_point,
+        "end_point": node.end_point,
+        "children": [nodeToDict(child) for child in node.children]
+    }
 
 
+def ASTSummarization(objAST):  # ---> The AST of the code snippet in JSON format
+    tree = parser.parse(bytes(objAST, encoding="utf-8"))
+    """Perform a recursive function for an in-order traversal starting from the AST's root node"""
+    def findBodyNode(node):
+        if node.type == 'block':
+            return node
+        for child in node.children:
+            res = findBodyNode(child)
+            if res:
+                return res
+        return None
+
+    try:
+        body_node = findBodyNode(tree.root_node)
+        listSeqs = []
+        for child in body_node.children:
+            listSeqs.append(child.type)
+        return listSeqs
+    except AttributeError:
+        print("Could not find the root body node")
+        return []
 
 
-
-str_root_node = str(root_node)
-with(open("python_AST_extracted.json", "w", encoding="utf-8") as file):
-    json.dump({"python_AST": str_root_node}, file, indent=4)
-
-
-print("✅ Root node string has been saved to python_AST_extracted.json")
+def test():
+    code = """
+def example_function():
+    x = 10
+    if x > 5:
+        print("Greater than 5")
+    else:
+        print("Less than or equal to 5")
+"""
+    objAST = pythonToAST(code)
+    astSum = ASTSummarization(objAST)
+    print(astSum)
+test()
