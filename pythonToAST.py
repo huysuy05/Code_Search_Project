@@ -51,11 +51,12 @@ def ASTSummarization(objAST):  # ---> The AST of the code snippet in JSON format
 def test():
     code = """
 def example_function():
-    x = 10
-    if x > 5:
-        print("Greater than 5")
-    else:
-        print("Less than or equal to 5")
+    clk = obj.clk
+    rst = obj.rst
+    for u in obj._units:
+        _tryConnect(clk, u, "clk")
+        _tryConnect(rst, u, "rst_n")
+        _tryConnect(rst, u, 'rst')
 """
     objAST = pythonToAST(code)
     astSum = ASTSummarization(objAST)
