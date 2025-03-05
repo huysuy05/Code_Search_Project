@@ -1,0 +1,29 @@
+# macOS
+._*
+.DS_Store
+.AppleDouble
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.venv/
+env/
+
+# Node.js
+node_modules/
+npm-debug.log
+yarn-error.log
+package-lock.json
+*.env
+
+# IDEs
+.vscode/
+.idea/
+*.iml
+
+# System
+*.log
+*.bak
+*.swp
