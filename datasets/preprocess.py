@@ -4,18 +4,21 @@ import os
 for language in ['ruby','go','java','javascript','php','python']:
     print(language)
     train,valid,test,codebase=[],[],[], []
-    for root, dirs, files in os.walk(language+'/final'):
-        for file in files:
-            temp=os.path.join(root,file)
-            if '.jsonl' in temp:
-                if 'train' in temp:
-                    train.append(temp)
-                elif 'valid' in temp:
-                    valid.append(temp)
-                    codebase.append(temp)
-                elif 'test' in temp:
-                    test.append(temp) 
-                    codebase.append(temp)
+    try:
+        for root, dirs, files in os.walk(language+'/final'):
+            for file in files:
+                temp=os.path.join(root,file)
+                if '.jsonl' in temp:
+                    if 'train' in temp:
+                        train.append(temp)
+                    elif 'valid' in temp:
+                        valid.append(temp)
+                        codebase.append(temp)
+                    elif 'test' in temp:
+                        test.append(temp) 
+                        codebase.append(temp)
+    except FileNotFoundError as e:
+        print("File not found: ", language)
                     
     train_data,valid_data,test_data,codebase_data={},{},{},{}
     for files,data in [[train,train_data],[valid,valid_data],[test,test_data],[codebase,codebase_data]]:

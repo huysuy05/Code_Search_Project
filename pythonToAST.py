@@ -49,12 +49,20 @@ def ASTSummarization(objAST):  # ---> The AST of the code snippet
 
 def ASTSumRepresentation(listSeqs):
     """Returns a tree representation of ASTSum after extracting from the original AST"""
+    root = None
     repr = []
     for node_type in listSeqs:
         non_terminal_node = ASTNode(node_type)
-        children = non_terminal_node.add_child(node_type.child)
-        repr.append(non_terminal_node.__repr__(0))
-    return repr
+        if not root:
+            root = non_terminal_node
+            repr.append(root)
+        else:
+            parent_node = repr[0]
+            parent_node.add_child(non_terminal_node)
+            repr = [non_terminal_node]
+        
+
+    return root
 
 
 
