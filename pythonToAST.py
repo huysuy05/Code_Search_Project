@@ -1,14 +1,13 @@
 from tree_sitter import Language, Parser
 import tree_sitter_python as tspython
-import json
+from ASTNode import *
 
 # print("Testing execution on terminal")
 PY_LANGUAGE = Language(tspython.language())
 parser = Parser(PY_LANGUAGE)
 
-
 def pythonToAST(code):
-    """Returns a string JSON format of the tree by parsing the tree and getting the root node"""
+    """Returns a Tree object by parsing the tree and getting the root node"""
     tree = parser.parse(bytes(code, encoding="utf-8"))
     objAST = tree.root_node
     assert tree.root_node.type == "module"  # Ensures that the root node of Python code is "module"
@@ -25,7 +24,7 @@ def pythonToAST(code):
 #     }
 
 
-def ASTSummarization(objAST):  # ---> The AST of the code snippet in JSON format
+def ASTSummarization(objAST):  # ---> The AST of the code snippet
     # tree = parser.parse(bytes(objAST, encoding="utf-8"))
     """Perform a recursive function for an in-order traversal starting from the AST's root node"""
     def findBodyNode(node):
@@ -48,6 +47,18 @@ def ASTSummarization(objAST):  # ---> The AST of the code snippet in JSON format
         return []
 
 
+def ASTSumRepresentation(listSeqs):
+    """Returns a tree representation of ASTSum after extracting from the original AST"""
+    repr = []
+    for node_type in listSeqs:
+        non_terminal_node = ASTNode(node_type)
+        children = non_terminal_node.add_child(node_type.child)
+        repr.append(non_terminal_node.__repr__(0))
+    return repr
+
+
+
+
 def test():
     code = """
 def example_function():
@@ -59,6 +70,7 @@ def example_function():
         _tryConnect(rst, u, 'rst')
 """
     objAST = pythonToAST(code)
-    astSum = ASTSummarization(objAST)
-    print(astSum)
+    listSeqs = ASTSummarization(objAST)
+    print(listSeqs)
+    print(ASTSumRepresentation(listSeqs))
 test()
