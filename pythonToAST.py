@@ -69,16 +69,20 @@ def ASTSumRepresentation(listSeqs):
 
 def test():
     code = """
-def example_function():
-    clk = obj.clk
-    rst = obj.rst
-    for u in obj._units:
-        _tryConnect(clk, u, "clk")
-        _tryConnect(rst, u, "rst_n")
-        _tryConnect(rst, u, 'rst')
+def process_data(input_list):
+    
+    # Filter out even numbers
+    odd_numbers = [num for num in input_list if num % 2 != 0]
+    
+    # Multiply each remaining number by 3
+    multiplied_numbers = [num * 3 for num in odd_numbers]
+    
+    # Return the sum of these numbers
+    return sum(multiplied_numbers)
 """
     objAST = pythonToAST(code)
     listSeqs = ASTSummarization(objAST)
     print(listSeqs)
-    print(ASTSumRepresentation(listSeqs))
+    # print(ASTSumRepresentation(listSeqs))
+
 test()
