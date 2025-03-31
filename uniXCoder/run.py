@@ -30,8 +30,9 @@ import numpy as np
 from model import Model
 from torch.nn import CrossEntropyLoss, MSELoss
 from torch.utils.data import DataLoader, Dataset, SequentialSampler, RandomSampler,TensorDataset
-from transformers import (WEIGHTS_NAME, AdamW, get_linear_schedule_with_warmup,
+from transformers import (WEIGHTS_NAME, get_linear_schedule_with_warmup,
                               RobertaConfig, RobertaModel, RobertaTokenizer)
+from torch.optim import AdamW
 
 logger = logging.getLogger(__name__)
 
