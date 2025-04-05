@@ -130,7 +130,9 @@ def train(args, model, tokenizer):
     #get training dataset
     train_dataset = TextDataset(tokenizer, args, args.train_data_file)
     train_sampler = RandomSampler(train_dataset)
-    train_dataloader = DataLoader(train_dataset, sampler=train_sampler, batch_size=args.train_batch_size,num_workers=4)
+    # Not enough input, so halved the batch size
+    # Out of RAM in PyTorch, so set num_workers to 0
+    train_dataloader = DataLoader(train_dataset, sampler=train_sampler, batch_size=args.train_batch_size // 2,num_workers=0)
     
     #get optimizer and scheduler
     optimizer = AdamW(model.parameters(), lr=args.learning_rate, eps=1e-8)
