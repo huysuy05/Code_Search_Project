@@ -33,8 +33,10 @@ from torch.utils.data import DataLoader, Dataset, SequentialSampler, RandomSampl
 from transformers import (WEIGHTS_NAME, get_linear_schedule_with_warmup,
                               RobertaConfig, RobertaModel, RobertaTokenizer)
 from torch.optim import AdamW
+from accelerate import Accelerator
 
 logger = logging.getLogger(__name__)
+accelerator = Accelerator()
 
 
 class InputFeatures(object):
@@ -130,24 +132,26 @@ def train(args, model, tokenizer):
     #get training dataset
     train_dataset = TextDataset(tokenizer, args, args.train_data_file)
     train_sampler = RandomSampler(train_dataset)
-    # Not enough input, so halved the batch size
-    # Out of RAM in PyTorch, so set num_workers to 0
-    train_dataloader = DataLoader(train_dataset, sampler=train_sampler, batch_size=args.train_batch_size // 2,num_workers=0)
+    train_dataloader = DataLoader(train_dataset, sampler=train_sampler, batch_size= args.train_batch_size ,num_workers=0)
     
     #get optimizer and scheduler
     optimizer = AdamW(model.parameters(), lr=args.learning_rate, eps=1e-8)
     scheduler = get_linear_schedule_with_warmup(optimizer, num_warmup_steps = 0, num_training_steps = len(train_dataloader) * args.num_train_epochs)
+    
+    # Accelerate!!!
+    model, optimizer, train_dataloader, scheduler = accelerator.prepare(
+            model,
+            optimizer,
+            train_dataloader,
+            scheduler
+    )
 
 
     # Train!
     logger.info("***** Running training *****")
     logger.info("  Num examples = %d", len(train_dataset))
     logger.info("  Num Epochs = %d", args.num_train_epochs)
-    logger.info("  Instantaneous batch size per GPU = %d", args.train_batch_size//args.n_gpu)
-    logger.info("  Total train batch size  = %d", args.train_batch_size)
-    logger.info("  Total optimization steps = %d", len(train_dataloader)*args.num_train_epochs)
-    
-    # model.resize_token_embeddings(len(tokenizer))
+
     model.zero_grad()
     
     model.train()
@@ -175,7 +179,7 @@ def train(args, model, tokenizer):
                 tr_num = 0
             
             #backward
-            loss.backward()
+            accelerator.backward(loss)
             torch.nn.utils.clip_grad_norm_(model.parameters(), args.max_grad_norm)
             optimizer.step()
             optimizer.zero_grad()
@@ -329,11 +333,11 @@ def main():
     #set log
     logging.basicConfig(format='%(asctime)s - %(levelname)s - %(name)s -   %(message)s',
                     datefmt='%m/%d/%Y %H:%M:%S',level=logging.INFO )
-    #set device
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    args.n_gpu = torch.cuda.device_count()
+    
+    #set device (mps if available else cpu)
+    device = torch.device("mps" if torch.mps.is_available() else "cpu")
     args.device = device
-    logger.info("device: %s, n_gpu: %s",device, args.n_gpu)
+    logger.info("device: %s",device)
     
     # Set seed
     set_seed(args.seed)
@@ -348,8 +352,8 @@ def main():
     logger.info("Training/evaluation parameters %s", args)
     
     model.to(args.device)
-    if args.n_gpu > 1:
-        model = torch.nn.DataParallel(model)  
+    # if args.n_gpu > 1:
+    #     model = torch.nn.DataParallel(model)  
             
     # Training
     if args.do_train:
