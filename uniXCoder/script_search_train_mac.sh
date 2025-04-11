@@ -2,7 +2,7 @@ lang=go
 pathTrainTestData="../"
 mkdir -p $pathTrainTestData/saved_models/$lang/
 python3 run_mac.py \
-    --output_dir $pathTrainTestData/saved_models/$lang/ \
+    --output_dir saved_models/$lang/ \
     --model_name_or_path microsoft/unixcoder-base  \
     --do_train \
     --train_data_file $pathTrainTestData/datasets/$lang/train.jsonl \
