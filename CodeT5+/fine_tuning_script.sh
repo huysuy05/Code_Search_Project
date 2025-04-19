@@ -15,4 +15,5 @@ python3 tune_codet5p_seq2seq.py \
         --max-target-len 128 \
         --batch-size-per-replica 16 \
         --lr 2e-5 \
+        --fp 16 \
 
